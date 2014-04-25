@@ -1520,9 +1520,9 @@ namespace MMD
         /// </summary>
         /// <param name="bones">ボーン</param>
         /// <returns>表情枠名とボーンが対応付けられた配列</returns>
-        List<string> ExtractBoneDisplayList(GameObject[] bones)
+        string[] ExtractBoneDisplayList(GameObject[] bones)
         {
-            var frame_list = new List<string>(bones.Length);
+            var frame_list = new string[bones.Length];
             var frames = format_.display_frame_list.display_frame;
             foreach (var frame in frames)
             {
@@ -1547,7 +1547,7 @@ namespace MMD
 		/// <param name='ik_data'>PMX用ボーンデータ</param>
 		/// <param name='bone_index'>該当IKデータのボーン通しインデックス</param>
 		/// <param name='bones'>ボーンのゲームオブジェクト</param>
-		BoneController ConvertBoneController(PMXFormat.Bone bone, List<string> frames, int bone_index, GameObject[] bones)
+		BoneController ConvertBoneController(PMXFormat.Bone bone, string[] frames, int bone_index, GameObject[] bones)
 		{
 			BoneController result = bones[bone_index].GetComponent<BoneController>();
 

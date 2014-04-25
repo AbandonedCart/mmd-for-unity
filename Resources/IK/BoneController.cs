@@ -18,6 +18,8 @@ public class BoneController : MonoBehaviour
     public bool rotatable;
     public bool operatable;
 
+    public string frame_display_name;   // 枠名
+
 	/// <summary>
 	/// 簡略化トランスフォーム
 	/// </summary>

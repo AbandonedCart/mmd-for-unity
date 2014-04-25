@@ -1390,7 +1390,7 @@ namespace MMD
 			
 			//材質リアサイン辞書の作成
 			Dictionary<uint, uint>[] material_reassign_dictionary = new Dictionary<uint, uint>[creation_info.Length + 1];
-			for (int i = 0, i_max = creation_info.Length; i < i_max; +++i) {
+			for (int i = 0, i_max = creation_info.Length; i < i_max; ++i) {
 				material_reassign_dictionary[i] = new Dictionary<uint, uint>();
 				for (uint k = 0, k_max = (uint)creation_info[i].value.Length; k < k_max; ++k) {
 					material_reassign_dictionary[i][creation_info[i].value[k].material_index] = k;
@@ -1504,14 +1504,42 @@ namespace MMD
 			foreach (var bone in bones) {
 				bone.AddComponent<BoneController>();
 			}
+
+            var bone_display_list = ExtractBoneDisplayList(bones);
+
 			BoneController[] result = Enumerable.Range(0, format_.bone_list.bone.Length)
 												.OrderBy(x=>(int)(PMXFormat.Bone.Flag.PhysicsTransform & format_.bone_list.bone[x].bone_flag)) //物理後変形を後方へ
 												.ThenBy(x=>format_.bone_list.bone[x].transform_level) //変形階層で安定ソート
-												.Select(x=>ConvertBoneController(format_.bone_list.bone[x], x, bones)) //ConvertIk()を呼び出す
+												.Select(x=>ConvertBoneController(format_.bone_list.bone[x], bone_display_list, x, bones)) //ConvertIk()を呼び出す
 												.ToArray();
 			return result;
 		}
-		
+
+        /// <summary>
+        /// 表示枠名を抽出してボーンのインデックスと対応付けたものを返す
+        /// </summary>
+        /// <param name="bones">ボーン</param>
+        /// <returns>表情枠名とボーンが対応付けられた配列</returns>
+        List<string> ExtractBoneDisplayList(GameObject[] bones)
+        {
+            var frame_list = new List<string>(bones.Length);
+            var frames = format_.display_frame_list.display_frame;
+            foreach (var frame in frames)
+            {
+                if (frame.special_frame_flag == 0)  // 通常枠
+                {
+                    foreach (var elem in frame.display_element)
+                    {
+                        if (elem.element_target == 0)   // 要素対象がボーンの場合に限る
+                        {
+                            frame_list[(int)elem.element_target_index] = frame.display_name;
+                        }
+                    }
+                }
+            }
+            return frame_list;
+        }
+
 		/// <summary>
 		/// ボーンをボーンコントローラースクリプトに変換する
 		/// </summary>
@@ -1519,7 +1547,7 @@ namespace MMD
 		/// <param name='ik_data'>PMX用ボーンデータ</param>
 		/// <param name='bone_index'>該当IKデータのボーン通しインデックス</param>
 		/// <param name='bones'>ボーンのゲームオブジェクト</param>
-		BoneController ConvertBoneController(PMXFormat.Bone bone, int bone_index, GameObject[] bones)
+		BoneController ConvertBoneController(PMXFormat.Bone bone, List<string> frames, int bone_index, GameObject[] bones)
 		{
 			BoneController result = bones[bone_index].GetComponent<BoneController>();
 
@@ -1527,6 +1555,7 @@ namespace MMD
             result.operatable = (bone.bone_flag & PMXFormat.Bone.Flag.CanOperate) > 0;
             result.rotatable = (bone.bone_flag & PMXFormat.Bone.Flag.Rotatable) > 0;
             result.movable = (bone.bone_flag & PMXFormat.Bone.Flag.Movable) > 0;
+            result.frame_display_name = frames[bone_index];
 
 			if (0.0f != bone.additional_rate) {
 				//付与親が有るなら

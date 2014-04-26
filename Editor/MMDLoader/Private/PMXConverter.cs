@@ -1700,7 +1700,7 @@ namespace MMD
 		{
 			PMXFormat.Rigidbody rigidbody = rigidbodys[index];
 			PhysicMaterial material = new PhysicMaterial(format_.meta_header.name + "_r" + rigidbody.name);
-			material.bounciness = rigidbody.recoil;
+			material.bounciness = rigidbody.recoil > 1f ? 1f : rigidbody.recoil;
 			material.staticFriction = rigidbody.friction;
 			material.dynamicFriction = rigidbody.friction;
 			

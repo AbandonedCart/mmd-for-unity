@@ -1557,6 +1557,13 @@ namespace MMD
             result.movable = (bone.bone_flag & PMXFormat.Bone.Flag.Movable) > 0;
             result.frame_display_name = frames[bone_index];
 
+            // ローカル軸の設定
+            if ((bone.bone_flag & PMXFormat.Bone.Flag.FixedAxis) > 0)
+            {
+                result.fixed_axis = true;   // Z軸のみ回転できるようになる
+                result.transform.forward = bone.axis_vector;
+            }
+
 			if (0.0f != bone.additional_rate) {
 				//付与親が有るなら
 				result.additive_parent = bones[bone.additional_parent_index].GetComponent<BoneController>();

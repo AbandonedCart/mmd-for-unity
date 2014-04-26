@@ -17,6 +17,7 @@ public class BoneController : MonoBehaviour
     public bool movable;
     public bool rotatable;
     public bool operatable;
+    public bool fixed_axis = false;
 
     public string frame_display_name;   // 枠名
 

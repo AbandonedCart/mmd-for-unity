@@ -1560,8 +1560,8 @@ namespace MMD
             // ローカル軸の設定
             if ((bone.bone_flag & PMXFormat.Bone.Flag.FixedAxis) > 0)
             {
-                result.fixed_axis = true;   // Z軸のみ回転できるようになる
-                result.transform.forward = bone.axis_vector;
+                result.fixed_axis_flag = true;   // Z軸のみ回転できるようになる
+                result.axis_vector = bone.axis_vector;
             }
 
 			if (0.0f != bone.additional_rate) {

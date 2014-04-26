@@ -55,51 +55,61 @@ public class BoneController : MonoBehaviour
 	/// <summary>
 	/// ボーン変形
 	/// </summary>
-	public void Process()
-	{
-		if (null != additive_parent) {
-			//付与親有りなら
-			LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
-			if (add_move) {
-				//付与移動有りなら
-				transform.localPosition += additive_parent_transform.position * additive_rate;
-			}
-			if (add_rotate) {
-				//付与回転有りなら
-				Quaternion delta_rotate_rate;
-				if (0.0f <= additive_rate) {
-					//正回転
-					delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
-				} else {
-					//逆回転
-					Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
-					delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
-				}
-				transform.localRotation *= delta_rotate_rate;
-			}
-		}
-	}
+    public void Process()
+    {
+        if (null != additive_parent)
+        {
+            //付与親有りなら
+            LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
+            if (add_move)
+            {
+                //付与移動有りなら
+                transform.localPosition += additive_parent_transform.position * additive_rate;
+            }
+            if (add_rotate)
+            {
+                //付与回転有りなら
+                Quaternion delta_rotate_rate;
+                if (0.0f <= additive_rate)
+                {
+                    //正回転
+                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
+                }
+                else
+                {
+                    //逆回転
+                    Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
+                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
+                }
+                transform.localRotation *= delta_rotate_rate;
+            }
+        }
+    }
 
 	/// <summary>
 	/// 差分トランスフォーム取得
 	/// </summary>
 	/// <returns>差分トランスフォーム</returns>
 	/// <param name='is_add_local'>ローカル付与か(true:ローカル付与, false:通常付与)</param>
-	public LiteTransform GetDeltaTransform(bool is_add_local) {
-		LiteTransform result;
-		if (is_add_local) {
-			//ローカル付与(親も含めた変形量算出)
-			result = new LiteTransform(transform.position - prev_global_.position
-									, Quaternion.Inverse(prev_global_.rotation) * transform.rotation
-									);
-		} else {
-			//通常付与(このボーン単体での変形量算出)
-			result = new LiteTransform(transform.localPosition - prev_local_.position
-									, Quaternion.Inverse(prev_local_.rotation) * transform.localRotation
-									);
-		}
-		return result;
-	}
+    public LiteTransform GetDeltaTransform(bool is_add_local)
+    {
+        LiteTransform result;
+        if (is_add_local)
+        {
+            //ローカル付与(親も含めた変形量算出)
+            result = new LiteTransform(transform.position - prev_global_.position
+                                    , Quaternion.Inverse(prev_global_.rotation) * transform.rotation
+                                    );
+        }
+        else
+        {
+            //通常付与(このボーン単体での変形量算出)
+            result = new LiteTransform(transform.localPosition - prev_local_.position
+                                    , Quaternion.Inverse(prev_local_.rotation) * transform.localRotation
+                                    );
+        }
+        return result;
+    }
 	
 	/// <summary>
 	/// 差分基点トランスフォーム更新

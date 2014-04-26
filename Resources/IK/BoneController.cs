@@ -17,8 +17,13 @@ public class BoneController : MonoBehaviour
     public bool movable;
     public bool rotatable;
     public bool operatable;
+
     public bool fixed_axis_flag = false;
     public Vector3 axis_vector;
+
+    public bool enable_local = false;
+    public Vector3 local_x;
+    public Vector3 local_z;
 
     public string frame_display_name;   // 枠名
 

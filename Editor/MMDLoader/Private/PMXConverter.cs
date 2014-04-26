@@ -1557,11 +1557,19 @@ namespace MMD
             result.movable = (bone.bone_flag & PMXFormat.Bone.Flag.Movable) > 0;
             result.frame_display_name = frames[bone_index];
 
-            // ローカル軸の設定
+            // 軸制限の設定
             if ((bone.bone_flag & PMXFormat.Bone.Flag.FixedAxis) > 0)
             {
                 result.fixed_axis_flag = true;   // Z軸のみ回転できるようになる
                 result.axis_vector = bone.axis_vector;
+            }
+
+            // ローカル軸の設定
+            if ((bone.bone_flag & PMXFormat.Bone.Flag.LocalAxis) > 0)
+            {
+                result.enable_local = true;
+                result.local_x = bone.x_axis_vector;
+                result.local_z = bone.z_axis_vector;
             }
 
 			if (0.0f != bone.additional_rate) {

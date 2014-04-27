@@ -166,7 +166,7 @@ public class BoneController : MonoBehaviour
         my_transform.localRotation = Quaternion.identity;
     }
 
-    Quaternion RotatePose(float angle, ref Vector3 a, ref Vector3 v1, ref Vector3 v2)
+    Quaternion RotatePoseVector(float angle, ref Vector3 a, ref Vector3 v1, ref Vector3 v2)
     {
         var q = Quaternion.identity;
         if (angle != 0f)
@@ -179,27 +179,28 @@ public class BoneController : MonoBehaviour
     }
 
     /// <summary>
-    /// ローカル軸から見てx, y, z軸回転を行い，localRotationに乗算する
+    /// ローカル軸から見てx, y, z軸回転を行い，乗算したものを返す
     /// </summary>
     /// <param name="x">X軸の回転量</param>
     /// <param name="y">Y軸の回転量</param>
     /// <param name="z">Z軸の回転量</param>
-    public void RotatePose(float x, float y, float z)
+    /// <returns>各軸を回転させて乗算したもの</returns>
+    public Quaternion RotatePose(float x, float y, float z)
     {
         var vz = local_z;
         var vy = local_y;
         var vx = local_x;
 
         // 姿勢の回転
-        var qx = RotatePose(x, ref vx, ref vy, ref vz);
-        var qy = RotatePose(y, ref vy, ref vz, ref vx);
-        var qz = RotatePose(z, ref vz, ref vx, ref vy);
+        var qx = RotatePoseVector(x, ref vx, ref vy, ref vz);
+        var qy = RotatePoseVector(y, ref vy, ref vz, ref vx);
+        var qz = RotatePoseVector(z, ref vz, ref vx, ref vy);
 
         // 新しい姿勢に変える
         local_x = vx;
         local_y = vy;
         local_z = vz;
 
-        my_transform.localRotation *= qx * qy * qz;
+        return qx * qy * qz;
     }
 }

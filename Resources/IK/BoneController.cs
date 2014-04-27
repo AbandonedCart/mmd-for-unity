@@ -25,6 +25,9 @@ public class BoneController : MonoBehaviour
     public Vector3 local_x;
     public Vector3 local_y;
     public Vector3 local_z;
+    Vector3 initial_local_x;
+    Vector3 initial_local_y;
+    Vector3 initial_local_z;
 
     public string frame_display_name;   // 枠名
 
@@ -38,15 +41,19 @@ public class BoneController : MonoBehaviour
 		
 		public LiteTransform(Vector3 p, Quaternion r) {position = p; rotation = r;}
 	}
-    LiteTransform prev_transform_;
+    LiteTransform prev_global_;
+    LiteTransform prev_local_;
+
     LiteTransform prev_parent_transform_;
     Transform additive_parent_transform;
+    Transform my_transform;     // 自分自身のTransform
 
 	/// <summary>
 	/// 初回更新前処理
 	/// </summary>
 	void Start()
 	{
+        my_transform = transform;
 		if (null != ik_solver) {
 			ik_solver = transform.GetComponent<CCDIKSolver>();
 			if (0 == ik_solver_targets.Length) {
@@ -59,8 +66,9 @@ public class BoneController : MonoBehaviour
 
         if (additive_parent != null)
             additive_parent_transform = additive_parent.transform;
-        
-        local_y = Vector3.Cross(local_z, local_y);
+        initial_local_x = local_x;
+        initial_local_y = local_y;
+        initial_local_z = local_z;
 		UpdatePrevTransform();
 	}
 
@@ -71,7 +79,30 @@ public class BoneController : MonoBehaviour
     {
         if (null != additive_parent)
         {
-            ProcessAdditiveParent();
+            //付与親有りなら
+            LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
+            if (add_move && CheckAdditiveParentMovedPreviewFrame())
+            {
+                //付与移動有りなら
+                my_transform.localPosition += additive_parent_transform.position * additive_rate;
+            }
+            if (add_rotate && CheckAdditiveParentRotatedPreviewFrame())
+            {
+                //付与回転有りなら
+                Quaternion delta_rotate_rate;
+                if (0.0f <= additive_rate)
+                {
+                    //正回転
+                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
+                }
+                else
+                {
+                    //逆回転
+                    Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
+                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
+                }
+                my_transform.localRotation *= delta_rotate_rate;
+            }
         }
     }
 
@@ -90,46 +121,6 @@ public class BoneController : MonoBehaviour
         return false;
     }
 
-    void ProcessAdditiveParent()
-    {
-        //付与親有りなら
-        LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
-        if (add_move)
-            AddMove(ref additive_parent_transform);
-        if (add_rotate)
-            AddRotate(ref additive_parent_transform);
-    }
-
-    void AddMove(ref LiteTransform additive_parent_transform)
-    {
-        if (CheckAdditiveParentMovedPreviewFrame())
-        {
-            //付与移動有りなら
-            transform.localPosition += additive_parent_transform.position * additive_rate;
-        }
-    }
-
-    void AddRotate(ref LiteTransform additive_parent_transform)
-    {
-        if (CheckAdditiveParentRotatedPreviewFrame())
-        {
-            //付与回転有りなら
-            Quaternion delta_rotate_rate;
-            if (0.0f <= additive_rate)
-            {
-                //正回転
-                delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
-            }
-            else
-            {
-                //逆回転
-                Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
-                delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
-            }
-            transform.localRotation *= delta_rotate_rate;
-        }
-    }
-
     /// <summary>
     /// 差分トランスフォーム取得
     /// </summary>
@@ -140,34 +131,74 @@ public class BoneController : MonoBehaviour
         if (is_add_local)
         {
             //ローカル付与(親も含めた変形量算出)
-            return new LiteTransform(transform.position - prev_transform_.position
-                                    , Quaternion.Inverse(prev_transform_.rotation) * transform.rotation
+            return new LiteTransform(my_transform.position - prev_global_.position
+                                    , Quaternion.Inverse(prev_global_.rotation) * my_transform.rotation
                                     );
         }
         else
         {
             //通常付与(このボーン単体での変形量算出)
-            return new LiteTransform(transform.localPosition - prev_transform_.position
-                                    , Quaternion.Inverse(prev_transform_.rotation) * transform.localRotation
+            return new LiteTransform(my_transform.localPosition - prev_local_.position
+                                    , Quaternion.Inverse(prev_local_.rotation) * my_transform.localRotation
                                     );
         }
     }
-	
-	/// <summary>
-	/// 差分基点トランスフォーム更新
-	/// </summary>
-	public void UpdatePrevTransform() {
-        if (!add_local)
+
+    /// <summary>
+    /// 差分基点トランスフォーム更新
+    /// </summary>
+    public void UpdatePrevTransform()
+    {
+        prev_global_ = new LiteTransform(my_transform.position, my_transform.rotation);
+        prev_local_ = new LiteTransform(my_transform.localPosition, my_transform.localRotation);
+        if (additive_parent != null)
+            prev_parent_transform_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
+    }
+
+    /// <summary>
+    /// 変更したローカル軸を初期位置に戻す
+    /// </summary>
+    public void ResetPose()
+    {
+        local_x = initial_local_x;
+        local_y = initial_local_y;
+        local_z = initial_local_z;
+    }
+
+    Quaternion RotatePose(float angle, ref Vector3 a, ref Vector3 v1, ref Vector3 v2)
+    {
+        var q = Quaternion.identity;
+        if (angle != 0f)
         {
-            prev_transform_ = new LiteTransform(transform.position, transform.rotation);
-            if (additive_parent != null)
-                prev_parent_transform_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
+            q = Quaternion.AngleAxis(angle, a);
+            v1 = q * v1;
+            v2 = q * v2;
         }
-        else
-        {
-            prev_transform_ = new LiteTransform(transform.localPosition, transform.localRotation);
-            if (additive_parent != null)
-                prev_parent_transform_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
-        }
-	}
+        return q;
+    }
+
+    /// <summary>
+    /// ローカル軸から見てx, y, z軸回転を行い，localRotationに乗算する
+    /// </summary>
+    /// <param name="x">X軸の回転量</param>
+    /// <param name="y">Y軸の回転量</param>
+    /// <param name="z">Z軸の回転量</param>
+    public void RotatePose(float x, float y, float z)
+    {
+        var vz = local_z;
+        var vy = local_y;
+        var vx = local_x;
+
+        // 姿勢の回転
+        var qx = RotatePose(x, ref vx, ref vy, ref vz);
+        var qy = RotatePose(y, ref vy, ref vz, ref vx);
+        var qz = RotatePose(z, ref vz, ref vx, ref vy);
+
+        // 新しい姿勢に変える
+        local_x = vx;
+        local_y = vy;
+        local_z = vz;
+
+        my_transform.localRotation *= qx * qy * qz;
+    }
 }

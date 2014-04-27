@@ -79,11 +79,21 @@ public class BoneController : MonoBehaviour
     {
         //付与親有りなら
         LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
+        AddMove(ref additive_parent_transform);
+        AddRotate(ref additive_parent_transform);
+    }
+
+    void AddMove(ref LiteTransform additive_parent_transform)
+    {
         if (add_move)
         {
             //付与移動有りなら
             transform.localPosition += additive_parent_transform.position * additive_rate;
         }
+    }
+
+    void AddRotate(ref LiteTransform additive_parent_transform)
+    {
         if (add_rotate)
         {
             //付与回転有りなら

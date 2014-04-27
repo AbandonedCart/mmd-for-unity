@@ -64,7 +64,7 @@ public class BoneController : MonoBehaviour
 	/// </summary>
     public void Process()
     {
-        if (null != additive_parent && CheckAdditiveParentMovedPreviewFrame())
+        if (null != additive_parent)
         {
             ProcessAdditiveParent();
         }
@@ -73,9 +73,14 @@ public class BoneController : MonoBehaviour
     bool CheckAdditiveParentMovedPreviewFrame()
     {
         // 付与親が動いたら更新する
-        if (prev_parent_global_.position == additive_parent_transform.position)
+        if (prev_parent_global_.position != additive_parent_transform.position)
             return true;
-        if (prev_parent_global_.rotation == additive_parent_transform.rotation)
+        return false;
+    }
+
+    bool CheckAdditiveParentRotatedPreviewFrame()
+    {
+        if (prev_parent_global_.rotation != additive_parent_transform.rotation)
             return true;
         return false;
     }

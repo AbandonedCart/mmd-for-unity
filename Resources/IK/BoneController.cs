@@ -31,7 +31,7 @@ public class BoneController : MonoBehaviour
 	/// 簡略化トランスフォーム
 	/// </summary>
 	[System.Serializable]
-	public class LiteTransform {
+	public struct LiteTransform {
 		public Vector3 position;	// 位置
 		public Quaternion rotation;	// 回転
 		
@@ -64,7 +64,7 @@ public class BoneController : MonoBehaviour
 	/// </summary>
     public void Process()
     {
-        if (null != additive_parent)
+        if (null != additive_parent && CheckAdditiveParentMovedPreviewFrame())
         {
             ProcessAdditiveParent();
         }
@@ -72,7 +72,12 @@ public class BoneController : MonoBehaviour
 
     bool CheckAdditiveParentMovedPreviewFrame()
     {
-        return true;
+        // 付与親が動いたら更新する
+        if (prev_parent_global_.position == additive_parent_transform.position)
+            return true;
+        if (prev_parent_global_.rotation == additive_parent_transform.rotation)
+            return true;
+        return false;
     }
 
     void ProcessAdditiveParent()

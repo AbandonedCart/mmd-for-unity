@@ -1567,7 +1567,7 @@ namespace MMD
             // ローカル軸の設定
             if ((bone.bone_flag & PMXFormat.Bone.Flag.LocalAxis) > 0)
             {
-                result.enable_local = true;
+                result.enable_local_axis = true;
                 result.local_x = bone.x_axis_vector;
                 result.local_z = bone.z_axis_vector;
             }

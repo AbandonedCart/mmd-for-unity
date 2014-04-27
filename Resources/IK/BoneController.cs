@@ -21,7 +21,7 @@ public class BoneController : MonoBehaviour
     public bool fixed_axis_flag = false;// 軸制限
     public Vector3 axis_vector;
 
-    public bool enable_local = false;   // ローカル軸
+    public bool enable_local_axis = false;   // ローカル軸
     public Vector3 local_x;
     public Vector3 local_z;
 

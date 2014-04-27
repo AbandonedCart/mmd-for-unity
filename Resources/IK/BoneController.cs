@@ -25,6 +25,7 @@ public class BoneController : MonoBehaviour
     public Vector3 local_x;
     public Vector3 local_y;
     public Vector3 local_z;
+    public Vector3 LocalRotationValues { get; private set; }
     Vector3 initial_local_x;
     Vector3 initial_local_y;
     Vector3 initial_local_z;
@@ -69,6 +70,7 @@ public class BoneController : MonoBehaviour
         initial_local_x = local_x;
         initial_local_y = local_y;
         initial_local_z = local_z;
+        LocalRotationValues = Vector3.zero;
 		UpdatePrevTransform();
 	}
 
@@ -164,6 +166,7 @@ public class BoneController : MonoBehaviour
         local_y = initial_local_y;
         local_z = initial_local_z;
         my_transform.localRotation = Quaternion.identity;
+        LocalRotationValues = Vector3.zero;
     }
 
     Quaternion RotatePoseVector(float angle, ref Vector3 a, ref Vector3 v1, ref Vector3 v2)
@@ -195,6 +198,8 @@ public class BoneController : MonoBehaviour
         var qx = RotatePoseVector(x, ref vx, ref vy, ref vz);
         var qy = RotatePoseVector(y, ref vy, ref vz, ref vx);
         var qz = RotatePoseVector(z, ref vz, ref vx, ref vy);
+
+        LocalRotationValues += new Vector3(x, y, z);
 
         // 新しい姿勢に変える
         local_x = vx;

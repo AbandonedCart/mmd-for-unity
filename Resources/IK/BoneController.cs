@@ -156,13 +156,14 @@ public class BoneController : MonoBehaviour
     }
 
     /// <summary>
-    /// 変更したローカル軸を初期位置に戻す
+    /// 変更したローカル軸を初期位置に戻し，ローカル回転も元に戻す
     /// </summary>
     public void ResetPose()
     {
         local_x = initial_local_x;
         local_y = initial_local_y;
         local_z = initial_local_z;
+        my_transform.localRotation = Quaternion.identity;
     }
 
     Quaternion RotatePose(float angle, ref Vector3 a, ref Vector3 v1, ref Vector3 v2)

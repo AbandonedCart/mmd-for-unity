@@ -56,7 +56,10 @@ public class BoneController : MonoBehaviour
 												.ToArray();
 			}
 		}
-        additive_parent_transform = additive_parent.transform;
+
+        if (additive_parent != null)
+            additive_parent_transform = additive_parent.transform;
+        
         local_y = Vector3.Cross(local_z, local_y);
 		UpdatePrevTransform();
 	}
@@ -157,12 +160,14 @@ public class BoneController : MonoBehaviour
         if (!add_local)
         {
             prev_transform_ = new LiteTransform(transform.position, transform.rotation);
-            prev_parent_transform_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
+            if (additive_parent != null)
+                prev_parent_transform_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
         }
         else
         {
             prev_transform_ = new LiteTransform(transform.localPosition, transform.localRotation);
-            prev_parent_transform_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
+            if (additive_parent != null)
+                prev_parent_transform_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
         }
 	}
 }

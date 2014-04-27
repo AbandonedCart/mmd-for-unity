@@ -1570,6 +1570,7 @@ namespace MMD
                 result.enable_local_axis = true;
                 result.local_x = bone.x_axis_vector;
                 result.local_z = bone.z_axis_vector;
+                result.local_y = Vector3.Cross(bone.z_axis_vector, bone.x_axis_vector);
             }
 
 			if (0.0f != bone.additional_rate) {

@@ -37,8 +37,10 @@ public class BoneController : MonoBehaviour
 		
 		public LiteTransform(Vector3 p, Quaternion r) {position = p; rotation = r;}
 	}
-	private LiteTransform prev_global_;
-	private LiteTransform prev_local_;
+    LiteTransform prev_global_;
+    LiteTransform prev_parent_global_;
+    LiteTransform prev_parent_local_;
+    Transform additive_parent_transform;
 
 	/// <summary>
 	/// 初回更新前処理
@@ -54,6 +56,7 @@ public class BoneController : MonoBehaviour
 												.ToArray();
 			}
 		}
+        additive_parent_transform = additive_parent.transform;
 		UpdatePrevTransform();
 	}
 
@@ -64,30 +67,40 @@ public class BoneController : MonoBehaviour
     {
         if (null != additive_parent)
         {
-            //付与親有りなら
-            LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
-            if (add_move)
+            ProcessAdditiveParent();
+        }
+    }
+
+    bool CheckAdditiveParentMovedPreviewFrame()
+    {
+        return true;
+    }
+
+    void ProcessAdditiveParent()
+    {
+        //付与親有りなら
+        LiteTransform additive_parent_transform = additive_parent.GetDeltaTransform(add_local);
+        if (add_move)
+        {
+            //付与移動有りなら
+            transform.localPosition += additive_parent_transform.position * additive_rate;
+        }
+        if (add_rotate)
+        {
+            //付与回転有りなら
+            Quaternion delta_rotate_rate;
+            if (0.0f <= additive_rate)
             {
-                //付与移動有りなら
-                transform.localPosition += additive_parent_transform.position * additive_rate;
+                //正回転
+                delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
             }
-            if (add_rotate)
+            else
             {
-                //付与回転有りなら
-                Quaternion delta_rotate_rate;
-                if (0.0f <= additive_rate)
-                {
-                    //正回転
-                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_transform.rotation, additive_rate);
-                }
-                else
-                {
-                    //逆回転
-                    Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
-                    delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
-                }
-                transform.localRotation *= delta_rotate_rate;
+                //逆回転
+                Quaternion additive_parent_delta_rotate_reverse = Quaternion.Inverse(additive_parent_transform.rotation);
+                delta_rotate_rate = Quaternion.Slerp(Quaternion.identity, additive_parent_delta_rotate_reverse, -additive_rate);
             }
+            transform.localRotation *= delta_rotate_rate;
         }
     }
 
@@ -109,8 +122,8 @@ public class BoneController : MonoBehaviour
         else
         {
             //通常付与(このボーン単体での変形量算出)
-            result = new LiteTransform(transform.localPosition - prev_local_.position
-                                    , Quaternion.Inverse(prev_local_.rotation) * transform.localRotation
+            result = new LiteTransform(transform.localPosition - prev_global_.position
+                                    , Quaternion.Inverse(prev_global_.rotation) * transform.localRotation
                                     );
         }
         return result;
@@ -120,7 +133,15 @@ public class BoneController : MonoBehaviour
 	/// 差分基点トランスフォーム更新
 	/// </summary>
 	public void UpdatePrevTransform() {
-        //prev_global_ = new LiteTransform(transform.position, transform.rotation);
-        //prev_local_ = new LiteTransform(transform.localPosition, transform.localRotation);
+        if (!add_local)
+        {
+            prev_global_ = new LiteTransform(transform.position, transform.rotation);
+        }
+        else
+        {
+            prev_global_ = new LiteTransform(transform.localPosition, transform.localRotation);
+        }
+        prev_parent_global_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
+        prev_parent_local_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
 	}
 }

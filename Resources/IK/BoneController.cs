@@ -37,8 +37,8 @@ public class BoneController : MonoBehaviour
 		
 		public LiteTransform(Vector3 p, Quaternion r) {position = p; rotation = r;}
 	}
-    LiteTransform prev_global_;
-    LiteTransform prev_parent_global_;
+    LiteTransform prev_transform_;
+    LiteTransform prev_parent_transform_;
     Transform additive_parent_transform;
 
 	/// <summary>
@@ -73,14 +73,14 @@ public class BoneController : MonoBehaviour
     bool CheckAdditiveParentMovedPreviewFrame()
     {
         // 付与親が動いたら更新する
-        if (prev_parent_global_.position != additive_parent_transform.position)
+        if (prev_parent_transform_.position != additive_parent_transform.position)
             return true;
         return false;
     }
 
     bool CheckAdditiveParentRotatedPreviewFrame()
     {
-        if (prev_parent_global_.rotation != additive_parent_transform.rotation)
+        if (prev_parent_transform_.rotation != additive_parent_transform.rotation)
             return true;
         return false;
     }
@@ -135,15 +135,15 @@ public class BoneController : MonoBehaviour
         if (is_add_local)
         {
             //ローカル付与(親も含めた変形量算出)
-            return new LiteTransform(transform.position - prev_global_.position
-                                    , Quaternion.Inverse(prev_global_.rotation) * transform.rotation
+            return new LiteTransform(transform.position - prev_transform_.position
+                                    , Quaternion.Inverse(prev_transform_.rotation) * transform.rotation
                                     );
         }
         else
         {
             //通常付与(このボーン単体での変形量算出)
-            return new LiteTransform(transform.localPosition - prev_global_.position
-                                    , Quaternion.Inverse(prev_global_.rotation) * transform.localRotation
+            return new LiteTransform(transform.localPosition - prev_transform_.position
+                                    , Quaternion.Inverse(prev_transform_.rotation) * transform.localRotation
                                     );
         }
     }
@@ -154,13 +154,13 @@ public class BoneController : MonoBehaviour
 	public void UpdatePrevTransform() {
         if (!add_local)
         {
-            prev_global_ = new LiteTransform(transform.position, transform.rotation);
-            prev_parent_global_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
+            prev_transform_ = new LiteTransform(transform.position, transform.rotation);
+            prev_parent_transform_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
         }
         else
         {
-            prev_global_ = new LiteTransform(transform.localPosition, transform.localRotation);
-            prev_parent_global_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
+            prev_transform_ = new LiteTransform(transform.localPosition, transform.localRotation);
+            prev_parent_transform_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
         }
 	}
 }

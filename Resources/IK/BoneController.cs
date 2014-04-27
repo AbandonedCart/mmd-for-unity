@@ -39,7 +39,6 @@ public class BoneController : MonoBehaviour
 	}
     LiteTransform prev_global_;
     LiteTransform prev_parent_global_;
-    LiteTransform prev_parent_local_;
     Transform additive_parent_transform;
 
 	/// <summary>
@@ -111,22 +110,20 @@ public class BoneController : MonoBehaviour
     /// <param name='is_add_local'>ローカル付与か(true:ローカル付与, false:通常付与)</param>
     LiteTransform GetDeltaTransform(bool is_add_local)
     {
-        LiteTransform result;
         if (is_add_local)
         {
             //ローカル付与(親も含めた変形量算出)
-            result = new LiteTransform(transform.position - prev_global_.position
+            return new LiteTransform(transform.position - prev_global_.position
                                     , Quaternion.Inverse(prev_global_.rotation) * transform.rotation
                                     );
         }
         else
         {
             //通常付与(このボーン単体での変形量算出)
-            result = new LiteTransform(transform.localPosition - prev_global_.position
+            return new LiteTransform(transform.localPosition - prev_global_.position
                                     , Quaternion.Inverse(prev_global_.rotation) * transform.localRotation
                                     );
         }
-        return result;
     }
 	
 	/// <summary>
@@ -136,12 +133,12 @@ public class BoneController : MonoBehaviour
         if (!add_local)
         {
             prev_global_ = new LiteTransform(transform.position, transform.rotation);
+            prev_parent_global_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
         }
         else
         {
             prev_global_ = new LiteTransform(transform.localPosition, transform.localRotation);
+            prev_parent_global_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
         }
-        prev_parent_global_ = new LiteTransform(additive_parent_transform.position, additive_parent_transform.rotation);
-        prev_parent_local_ = new LiteTransform(additive_parent_transform.localPosition, additive_parent_transform.localRotation);
 	}
 }

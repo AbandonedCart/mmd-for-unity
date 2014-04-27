@@ -23,6 +23,7 @@ public class BoneController : MonoBehaviour
 
     public bool enable_local_axis = false;   // ローカル軸
     public Vector3 local_x;
+    public Vector3 local_y;
     public Vector3 local_z;
 
     public string frame_display_name;   // 枠名
@@ -56,6 +57,7 @@ public class BoneController : MonoBehaviour
 			}
 		}
         additive_parent_transform = additive_parent.transform;
+        local_y = Vector3.Cross(local_z, local_y);
 		UpdatePrevTransform();
 	}
 

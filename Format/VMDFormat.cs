@@ -135,7 +135,11 @@ namespace MMD
                 public Quaternion rotation;
                 public byte[] interpolation;	// [4][4][4], 64byte
 
-                public Motion() { }
+                public Motion() 
+                {
+                    interpolation = new byte[64];
+                }
+
                 public Motion(BinaryReader bin)
                 {
                     bone_name = ToFormatUtil.ConvertByteToString(bin.ReadBytes(15), "");
@@ -145,20 +149,21 @@ namespace MMD
                     interpolation = bin.ReadBytes(64);
                 }
 
-                // なんか不便になりそうな気がして
-                public byte GetInterpolation(int i, int j, int k)
-                {
-                    return this.interpolation[i * 16 + j * 4 + k];
-                }
-
-                public void SetInterpolation(byte val, int i, int j, int k)
-                {
-                    this.interpolation[i * 16 + j * 4 + k] = val;
-                }
-
                 public byte[] ToBytes()
                 {
-                    throw new NotImplementedException();
+                    byte[] retarr = new byte[15 + 64 + 4 + 12 + 16];
+                    var bname = Encoding.ASCII.GetBytes(bone_name);
+                    var bframe = BitConverter.GetBytes(frame_no);
+                    var blocation = ToByteUtil.Vector3ToBytes(ref location);
+                    var brotation = ToByteUtil.QuaternionToBytes(ref rotation);
+
+                    ToByteUtil.SafeCopy(bname, retarr, 0, 15);
+                    ToByteUtil.SafeCopy(bframe, retarr, 15, 4);
+                    ToByteUtil.SafeCopy(blocation, retarr, 19, 12);
+                    ToByteUtil.SafeCopy(brotation, retarr, 31, 16);
+                    ToByteUtil.SafeCopy(interpolation, retarr, 47, 64);
+                    
+                    return retarr;
                 }
             }
 
@@ -300,7 +305,15 @@ namespace MMD
 
                 public byte[] ToBytes()
                 {
-                    throw new NotImplementedException();
+                    var retarr = new List<byte>();
+                    retarr.AddRange(BitConverter.GetBytes(frame_no));
+                    retarr.AddRange(BitConverter.GetBytes(length));
+                    retarr.AddRange(ToByteUtil.Vector3ToBytes(ref location));
+                    retarr.AddRange(ToByteUtil.Vector3ToBytes(ref rotation));
+                    retarr.AddRange(interpolation);
+                    retarr.AddRange(BitConverter.GetBytes(viewing_angle));
+                    retarr.AddRange(BitConverter.GetBytes(perspective));
+                    return retarr.ToArray();
                 }
             }
 

@@ -122,6 +122,8 @@ namespace MMD
 
                 public void Insert(Motion motion)
                 {
+                    if (!this.motion.ContainsKey(motion.bone_name))
+                        this.motion[motion.bone_name] = new List<Motion>();
                     this.motion[motion.bone_name].Add(motion);
                     motion_count++;
                 }
@@ -167,7 +169,7 @@ namespace MMD
                     int cnt = 0;
                     for (int i = 0; i < 3; i++)
                     {
-                        --index;
+                        index = index + 16 - 1;
                         ++cnt;
                         if (0 <= index)
                             interpolation[index] = value;
@@ -194,7 +196,7 @@ namespace MMD
                 public byte[] ToBytes()
                 {
                     byte[] retarr = new byte[15 + 64 + 4 + 12 + 16];
-                    var bname = Encoding.ASCII.GetBytes(bone_name);
+                    var bname = ToByteUtil.EncodeUTFToSJIS(bone_name);
                     var bframe = BitConverter.GetBytes(frame_no);
                     var blocation = ToByteUtil.Vector3ToBytes(ref location);
                     var brotation = ToByteUtil.QuaternionToBytes(ref rotation);

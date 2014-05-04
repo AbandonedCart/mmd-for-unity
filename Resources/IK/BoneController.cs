@@ -29,6 +29,8 @@ public class BoneController : MonoBehaviour
     Vector3 initial_local_y;
     Vector3 initial_local_z;
 
+    public Vector3 InitialLocalPosition { get; private set; }
+
     public string frame_display_name;   // 枠名
 
 	/// <summary>
@@ -69,6 +71,7 @@ public class BoneController : MonoBehaviour
         initial_local_x = local_x;
         initial_local_y = local_y;
         initial_local_z = local_z;
+        InitialLocalPosition = my_transform.localPosition;
 		UpdatePrevTransform();
 	}
 

@@ -26,6 +26,18 @@ public class VMDExporter
         return MakeReturnArray(header, motion, morph, camera, light, shadow);
     }
 
+    public byte[] ExportPose()
+    {
+        byte[] header = format.header.ToBytes();
+        byte[] motion = format.motion_list.ToBytes();
+        byte[] morph = format.skin_list.ToBytes();
+        byte[] camera = BitConverter.GetBytes((uint)0);
+        byte[] light = BitConverter.GetBytes((uint)0);
+        byte[] shadow = BitConverter.GetBytes((uint)0);
+
+        return MakeReturnArray(header, motion, morph, camera, light, shadow);
+    }
+
     byte[] MakeReturnArray(byte[] header, byte[] motion, byte[] morph, byte[] camera, byte[] light, byte[] shadow)
     {
         List<byte> retarr = new List<byte>();

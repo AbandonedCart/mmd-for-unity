@@ -57,6 +57,20 @@ namespace MMD
             return ret.ToArray();
         }
 
+        public static byte[] QuaternionToBytes(ref Quaternion q)
+        {
+            byte[] x = BitConverter.GetBytes(q.x);
+            byte[] y = BitConverter.GetBytes(q.y);
+            byte[] z = BitConverter.GetBytes(q.z);
+            byte[] w = BitConverter.GetBytes(q.w);
+            List<byte> ret = new List<byte>();
+            ret.AddRange(x);
+            ret.AddRange(y);
+            ret.AddRange(z);
+            ret.AddRange(w);
+            return ret.ToArray();
+        }
+
         public static byte[] FloatRGBToBytes(ref Color c)
         {
             byte[] r = BitConverter.GetBytes(c.r);

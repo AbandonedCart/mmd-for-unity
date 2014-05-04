@@ -138,6 +138,48 @@ namespace MMD
                 public Motion() 
                 {
                     interpolation = new byte[64];
+
+                    for (uint i = 0; i < 4; i++)
+                    {
+                        SetInterpolation(i, 0, 0, 32);
+                        SetInterpolation(i, 0, 1, 32);
+                    }
+                    for (uint i = 0; i < 4; i++)
+                    {
+                        SetInterpolation(i, 1, 0, 224);
+                        SetInterpolation(i, 1, 1, 224);
+                    }
+                }
+
+                void SetInterpolation_(int index, byte value)
+                {
+                    interpolation[index] = value;
+                }
+
+                public void SetInterpolation(uint xyzr, uint ab, uint xy, byte value)
+                {
+                    var col = ab * 8;
+                    var row = xy * 4;
+                    var pos = xyzr;
+                    int index = (int)(col + row + pos);
+                    interpolation[index] = value;
+
+                    int cnt = 0;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        --index;
+                        ++cnt;
+                        if (0 <= index)
+                            interpolation[index] = value;
+
+                        for (int j = 0; j < cnt; j++)
+                        {
+                            if (j == 0)
+                                interpolation[index + j] = 1;
+                            else
+                                interpolation[index + j] = 0;
+                        }
+                    }
                 }
 
                 public Motion(BinaryReader bin)

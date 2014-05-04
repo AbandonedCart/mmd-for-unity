@@ -11,12 +11,14 @@ namespace MMD
         {
             GameObject mmd_object;
             VMDFormat format;
+            MMDEngine engine;   // スケールを取得するために必要
 
             public VMDFormat Format { get { return format; } }
 
             public VMDFormatter(GameObject target)
             {
                 mmd_object = target;
+                engine = mmd_object.GetComponent<MMDEngine>();
                 format = new VMDFormat();
                 format.header = new VMDFormat.Header();
                 format.header.vmd_model_name = target.name;
@@ -48,6 +50,53 @@ namespace MMD
                     format.skin_list.Insert(skin);
                 }
                 return format;
+            }
+
+            public VMDFormat InsertPose(uint insert_frame_no)
+            {
+                var root = mmd_object.transform.FindChild("Model");
+                var bone_list = GetOperatableBones(root);
+
+                foreach (var bone in bone_list)
+                {
+                    if (bone.localPosition == Vector3.zero || bone.localRotation == Quaternion.identity)
+                        continue;
+                    var motion = new VMDFormat.Motion();
+                    motion.frame_no = insert_frame_no;
+                    motion.bone_name = bone.name;
+                    motion.location = bone.position * (1f / engine.scale);
+                    motion.rotation = bone.localRotation;
+                    // interpolationは自動的に初期化されるので無視する
+
+                    format.motion_list.Insert(motion);
+                }
+
+                return format;
+            }
+
+            void RecursiveAllForBones(List<Transform> bone_list, Transform parent_bone)
+            {
+                // 再帰的に操作可能なボーンを探索
+                for (int i = 0; i < parent_bone.childCount; i++)
+                {
+                    var child = parent_bone.GetChild(i);
+                    var ctrler = child.GetComponent<BoneController>();      // あまりGetComponentしたくない感じ
+                    if (ctrler != null)
+                    {
+                        if (ctrler.operatable && (ctrler.rotatable || ctrler.movable))
+                        {
+                            bone_list.Add(child);
+                        }
+                    }
+                    RecursiveAllForBones(bone_list, child);
+                }
+            }
+
+            List<Transform> GetOperatableBones(Transform root)
+            {
+                var result = new List<Transform>();
+                RecursiveAllForBones(result, root);
+                return result;
             }
         }
     }

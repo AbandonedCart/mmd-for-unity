@@ -52,6 +52,38 @@ namespace MMD
                 return format;
             }
 
+            class VQSet
+            {
+                public Vector3 v = Vector3.zero;
+                public Quaternion q = Quaternion.identity;
+            }
+
+            VQSet RecursiveCancelAddition(BoneController ctrl)
+            {
+                VQSet vq;
+
+                var parent = ctrl.additive_parent;
+                if (parent != null)
+                {
+                    var t = ctrl.transform;
+                    vq = RecursiveCancelAddition(parent);
+                    vq.v -= t.localPosition;
+                    vq.q *= Quaternion.Inverse(t.localRotation);
+                    return vq;
+                }
+
+                return new VQSet(); // ここまで到達すると恐らく親っぽい感じがする
+            }
+
+            VQSet CancelAddition(Transform bone)
+            {
+                var ctrl = bone.GetComponent<BoneController>();
+                var vq = RecursiveCancelAddition(ctrl);
+                vq.v = bone.localPosition + vq.v;
+                vq.q = bone.localRotation * vq.q;
+                return vq;
+            }
+
             public VMDFormat InsertPose(uint insert_frame_no)
             {
                 var root = mmd_object.transform.FindChild("Model");
@@ -59,11 +91,14 @@ namespace MMD
 
                 foreach (var bone in bone_list)
                 {
-                    if (bone.localPosition == Vector3.zero || bone.localRotation == Quaternion.identity)
+                    if (bone.localRotation == Quaternion.identity)
                         continue;
                     var motion = new VMDFormat.Motion();
                     motion.frame_no = insert_frame_no;
                     motion.bone_name = bone.name;
+
+                    CancelAddition(bone);
+
                     motion.location = bone.position * (1f / engine.scale);
                     motion.rotation = bone.localRotation;
                     // interpolationは自動的に初期化されるので無視する
